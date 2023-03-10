@@ -1,0 +1,17 @@
+version: "3"
+
+tasks:
+  default:
+    cmds:
+      - task: build
+      - task: install
+  build: go build
+  install:
+    deps:
+      - build
+    cmds:
+      - go install
+  clean:
+    cmds:
+      - go clean
+      - go clean -i
