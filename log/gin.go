@@ -1,27 +1,26 @@
 package log
 
 import (
-	"fmt"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 )
 
-func GinLogger() gin.HandlerFunc {
+func GinMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		url := c.FullPath()
 		if url == "" {
-			url = "404"
+			url = "[unmatched]"
 		}
 		t := time.Now()
 		c.Next()
 		elapsed := time.Since(t)
-		Logger.WithFields(logrus.Fields{
-			"time":   fmt.Sprintf("%dms", elapsed.Milliseconds()),
-			"status": c.Writer.Status(),
-			"method": c.Request.Method,
-			"ip":     c.ClientIP(),
-		}).Info(url)
+
+		status := c.Writer.Status()
+		if status >= 400 {
+			Default.Errorf("[%s] %s (%d) from %s took %dms", c.Request.Method, url, c.Writer.Status(), c.ClientIP(), elapsed.Milliseconds())
+		} else {
+			Default.Infof("[%s] %s (%d) from %s took %dms", c.Request.Method, url, c.Writer.Status(), c.ClientIP(), elapsed.Milliseconds())
+		}
 	}
 }

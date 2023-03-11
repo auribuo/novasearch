@@ -1,13 +1,13 @@
 package ugc
 
 import (
-	"github.com/auribuo/novasearch/log"
+	"strconv"
+	"strings"
+
 	"github.com/auribuo/novasearch/sql"
 	"github.com/auribuo/novasearch/types/coordinates"
 	"github.com/auribuo/novasearch/util"
 	"github.com/spf13/cobra"
-	"strconv"
-	"strings"
 )
 
 func parseResponse(response string) ([]Response, error) {
@@ -41,7 +41,6 @@ func parseResponse(response string) ([]Response, error) {
 }
 
 func parseLine(line string, header string) Response {
-	log.Logger.Debugf("parsing: %s", line)
 	columnDelimiters := strings.Split(header, " ")
 	columnWidths := sql.Map(columnDelimiters, func(t string) int {
 		return len(t)

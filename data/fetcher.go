@@ -57,5 +57,5 @@ func (f defaultDataFetcher) Fetch() ([]types.Galaxy, error) {
 		})
 	}
 
-	return nil, nil
+	return data, nil
 }
