@@ -6,6 +6,51 @@ tasks:
       - task: build
       - task: install
   build: go build
+  build_linux_amd64:
+    env:
+      GOOS: linux
+      GOARCH: amd64
+    cmds:
+      - go build -o release/novasearch-linux-amd64
+  build_linux_amd32:
+    env:
+      GOOS: linux
+      GOARCH: 386
+    cmds:
+      - go build -o release/novasearch-linux-386
+  build_linux_arm64:
+    env:
+      GOOS: linux
+      GOARCH: arm64
+    cmds:
+        - go build -o release/novasearch-linux-arm64
+  build_windows_amd64:
+    env:
+      GOOS: windows
+      GOARCH: amd64
+    cmds:
+      - go build -o release/novasearch-windows-amd64.exe
+  build_windows_386:
+    env:
+      GOOS: windows
+      GOARCH: 386
+    cmds:
+      - go build -o release/novasearch-windows-386.exe
+  build_macos_arm:
+    env:
+      GOOS: darwin
+      GOARCH: arm64
+    cmds:
+      - go build -o release/novasearch-macos-arm64
+  release:
+    cmds:
+      - rm -rf release
+      - task: build_linux_amd64
+      - task: build_linux_amd32
+      - task: build_linux_arm64
+      - task: build_windows_amd64
+      - task: build_windows_386
+      - task: build_macos_arm
   install:
     deps:
       - build
