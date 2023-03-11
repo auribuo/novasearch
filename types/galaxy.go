@@ -2,9 +2,10 @@ package types
 
 import (
 	"encoding/json"
-	"github.com/auribuo/novasearch/types/coordinates"
 	"math"
 	"time"
+
+	"github.com/auribuo/novasearch/types/coordinates"
 )
 
 const (
@@ -14,6 +15,8 @@ const (
 )
 
 const readoutTime = 3
+
+type extendedGalaxy Galaxy
 
 type Galaxy struct {
 	Morphology            string                            `json:"morphology"`
@@ -25,29 +28,39 @@ type Galaxy struct {
 	SemiMajorAxis         float64                           `json:"semiMajorAxis"`
 	SemiMinorAxis         float64                           `json:"semiMinorAxis"`
 	Redshift              float64                           `json:"redshift"`
-	visited               int
+	visited               bool
 	timestamp             time.Time
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Mark(t time.Time) {
+func (g *Galaxy) Mark(t time.Time) {
 	g.timestamp = t
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) At() time.Time {
+func (g *Galaxy) At() time.Time {
 	return g.timestamp
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) String() string {
+func (g *Galaxy) String() string {
 	jsonString, _ := json.Marshal(g)
 	return string(jsonString)
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) MarshalJSON() ([]byte, error) {
-	return json.Marshal(g.Extend())
+func (g *Galaxy) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		*extendedGalaxy
+		Distance float64 `json:"distance"`
+		Quality  float64 `json:"quality"`
+		Visited  bool    `json:"visited"`
+	}{
+		extendedGalaxy: (*extendedGalaxy)(g),
+		Distance:       g.Distance(),
+		Quality:        g.Quality(),
+		Visited:        g.visited,
+	})
 }
 
 //goland:noinspection GoMixedReceiverTypes
@@ -65,22 +78,26 @@ func (g *Galaxy) UnmarshalJSON(data []byte) error {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Visit() {
-	g.visited = 1
+func (g *Galaxy) Visit() {
+	g.visited = true
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Reset() {
-	g.visited = 0
+func (g *Galaxy) Reset() {
+	g.visited = false
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Distance() float64 {
+func (g *Galaxy) Distance() float64 {
 	return g.Redshift * 299792.458 / 70
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Quality() float64 {
+func (g *Galaxy) Quality() float64 {
+	if g.visited {
+		return 0
+	}
+
 	var typeWeight float64
 
 	switch g.Morphology {
@@ -106,15 +123,19 @@ func (g Galaxy) Quality() float64 {
 
 	if (g.AzimuthalCoordinates != coordinates.AzimuthalCoordinates{}) {
 		height := g.AzimuthalCoordinates.Elevation
-		heightWeight := math.Pow((height-30)/60, 1/3)
+		heightWeight := math.Pow((height-30)/60, 1/3.0)
 		quality *= heightWeight
 	}
 
-	return quality * float64(g.visited)
+	if g.visited {
+		return 0
+	}
+
+	return quality
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) calculateExposure(referenceTime float64) float64 {
+func (g *Galaxy) calculateExposure(referenceTime float64) float64 {
 	var distance float64
 	if g.Distance() > 0 {
 		distance = g.Distance()
@@ -125,17 +146,17 @@ func (g Galaxy) calculateExposure(referenceTime float64) float64 {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) slewFunction(distance float64) float64 {
+func (g *Galaxy) slewFunction(distance float64) float64 {
 	return 1/2.0*distance + 6
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) DistanceTo(other Ratable) float64 {
+func (g *Galaxy) DistanceTo(other Ratable) float64 {
 	return g.AzimuthalCoordinates.DistanceTo(other.Position())
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) WaitTime(distance float64) int {
+func (g *Galaxy) WaitTime(distance float64) int {
 	slewTime := g.slewFunction(distance)
 	balanceTime := slewTime / 1.5
 	exposureTime := g.calculateExposure(BaseTimeUgc2)
@@ -145,19 +166,11 @@ func (g Galaxy) WaitTime(distance float64) int {
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Position() coordinates.AzimuthalCoordinates {
+func (g *Galaxy) Position() coordinates.AzimuthalCoordinates {
 	return g.AzimuthalCoordinates
 }
 
 //goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Exposure() float64 {
+func (g *Galaxy) Exposure() float64 {
 	return g.calculateExposure(BaseTimeUgc2)
-}
-
-//goland:noinspection GoMixedReceiverTypes
-func (g Galaxy) Extend() ExtendedGalaxy {
-	return ExtendedGalaxy{
-		Galaxy:   g,
-		Distance: g.Distance(),
-	}
 }

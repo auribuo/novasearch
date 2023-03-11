@@ -1,10 +1,11 @@
 package types
 
 import (
-	"github.com/auribuo/novasearch/types/coordinates"
-	"github.com/auribuo/novasearch/util"
 	"math"
 	"time"
+
+	"github.com/auribuo/novasearch/types/coordinates"
+	"github.com/auribuo/novasearch/util"
 )
 
 type ViewportEdges struct {
@@ -25,7 +26,8 @@ func (v Viewport) At() time.Time {
 	if (v.Galaxies == nil) || (len(v.Galaxies) == 0) {
 		return time.Time{}
 	}
-	return v.Galaxies[0].At()
+	galaxy := v.Galaxies[0]
+	return galaxy.At()
 }
 
 func (v Viewport) DistanceTo(other Ratable) float64 {

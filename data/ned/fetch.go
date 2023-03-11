@@ -2,17 +2,18 @@ package ned
 
 import (
 	"encoding/json"
-	"github.com/auribuo/novasearch/data/ugc"
-	"github.com/auribuo/novasearch/fs"
-	"github.com/auribuo/novasearch/log"
-	"github.com/auribuo/novasearch/sql"
-	"github.com/go-resty/resty/v2"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/auribuo/novasearch/data/ugc"
+	"github.com/auribuo/novasearch/fs"
+	"github.com/auribuo/novasearch/log"
+	"github.com/auribuo/novasearch/sql"
+	"github.com/go-resty/resty/v2"
 )
 
 func Fetch(responses []ugc.Response) ([]Response, error) {
@@ -30,21 +31,21 @@ func Fetch(responses []ugc.Response) ([]Response, error) {
 
 	cacheFile := filepath.FromSlash(cacheFolder + "/ned.json")
 
-	log.Logger.Info("trying to fetch NED data from cache")
+	log.Default.Debug("trying to fetch NED data from cache")
 	local, err := fetchLocal(cacheFile)
 	if err != nil {
 		return nil, err
 	}
 	if local != nil && len(local) > 0 {
-		log.Logger.Info("successfully fetched NED data from cache")
+		log.Default.Debug("successfully fetched NED data from cache")
 		return local, nil
 	}
-	log.Logger.Info("no hit. trying to fetch NED data from remote")
+	log.Default.Warn("no cache found. trying to fetch NED data from remote")
 	data, err := fetchRemote(responses)
 	if err != nil {
 		return nil, err
 	}
-	log.Logger.Info("successfully fetched NED data from remote. saving to cache")
+	log.Default.Debug("successfully fetched NED data from remote. saving to cache")
 	cache := Cache{
 		LastUpdated: time.Now(),
 		Items:       data,

@@ -2,13 +2,14 @@ package ugc
 
 import (
 	"encoding/json"
-	"github.com/auribuo/novasearch/fs"
-	"github.com/auribuo/novasearch/log"
-	"github.com/go-resty/resty/v2"
 	"net/url"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/auribuo/novasearch/fs"
+	"github.com/auribuo/novasearch/log"
+	"github.com/go-resty/resty/v2"
 )
 
 func Fetch() ([]Response, error) {
@@ -26,21 +27,21 @@ func Fetch() ([]Response, error) {
 
 	cacheFile := filepath.FromSlash(cacheFolder + "/ugc.json")
 
-	log.Logger.Info("trying to fetch UGC data from cache")
+	log.Default.Debug("trying to fetch UGC data from cache")
 	local, err := fetchLocal(cacheFile)
 	if err != nil {
 		return nil, err
 	}
-	if local != nil && len(local) > 0 {
-		log.Logger.Info("successfully fetched NED data from cache")
+	if len(local) > 0 {
+		log.Default.Debug("successfully fetched NED data from cache")
 		return local, nil
 	}
-	log.Logger.Info("no hit. trying to fetch UGC data from remote")
+	log.Default.Warn("no cache found. trying to fetch UGC data from remote")
 	data, err := fetchRemote()
 	if err != nil {
 		return nil, err
 	}
-	log.Logger.Info("successfully fetched UGC data from remote. saving to cache")
+	log.Default.Debug("successfully fetched UGC data from remote. saving to cache")
 	cache := Cache{
 		LastUpdated: time.Now(),
 		Items:       data,
@@ -56,6 +57,9 @@ func Fetch() ([]Response, error) {
 			return nil, err
 		}
 		_, err = f.Write(cacheData)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return data, nil
 }
@@ -73,7 +77,7 @@ func fetchLocal(file string) ([]Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if time.Now().Sub(cache.LastUpdated) < 365*time.Hour*24 {
+	if time.Since(cache.LastUpdated) < 365*time.Hour*24 {
 		return cache.Items, nil
 	}
 	return nil, nil

@@ -11,5 +11,5 @@ func TakeWhile[T any](source []T, predicate func(T) bool) []T {
 			res = append(res, source[i])
 		}
 	}
-	return source
+	return res
 }

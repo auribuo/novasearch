@@ -2,6 +2,7 @@ package situational
 
 import (
 	"fmt"
+
 	"github.com/auribuo/novasearch/types"
 	"github.com/auribuo/novasearch/types/coordinates"
 )
@@ -10,7 +11,7 @@ func Filter(galaxies []types.Galaxy, hemisphere types.Hemisphere, minHeight floa
 	filtered := make([]types.Galaxy, 0)
 	for _, galaxy := range galaxies {
 		if (galaxy.AzimuthalCoordinates == coordinates.AzimuthalCoordinates{}) {
-			return nil, fmt.Errorf("galaxy UGC%d has no azimuthal coordinates", galaxy.UgcNumber)
+			return nil, fmt.Errorf("galaxy UGC%d has no azimuthal coordinates", galaxy.Id)
 		}
 		if galaxy.Position().Elevation < minHeight {
 			continue
