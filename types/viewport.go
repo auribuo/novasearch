@@ -4,22 +4,21 @@ import (
 	"math"
 	"time"
 
-	"github.com/auribuo/novasearch/types/coordinates"
 	"github.com/auribuo/novasearch/util"
 )
 
 type ViewportEdges struct {
-	TopLeft     coordinates.AzimuthalCoordinates `json:"topLeft"`
-	TopRight    coordinates.AzimuthalCoordinates `json:"topRight"`
-	BottomLeft  coordinates.AzimuthalCoordinates `json:"bottomLeft"`
-	BottomRight coordinates.AzimuthalCoordinates `json:"bottomRight"`
+	TopLeft     AzimuthalCoordinates `json:"topLeft"`
+	TopRight    AzimuthalCoordinates `json:"topRight"`
+	BottomLeft  AzimuthalCoordinates `json:"bottomLeft"`
+	BottomRight AzimuthalCoordinates `json:"bottomRight"`
 }
 
 type Viewport struct {
-	EquatorialPosition coordinates.EquatorialCoordinates `json:"equatorialPosition"`
-	AzimuthalPosition  coordinates.AzimuthalCoordinates  `json:"azimuthalPosition"`
-	Galaxies           map[int]Galaxy                    `json:"galaxies"`
-	ViewportEdges      ViewportEdges                     `json:"viewportEdges"`
+	EquatorialPosition EquatorialCoordinates `json:"equatorialPosition"`
+	AzimuthalPosition  AzimuthalCoordinates  `json:"azimuthalPosition"`
+	Galaxies           []Galaxy              `json:"galaxies"`
+	ViewportEdges      ViewportEdges         `json:"viewportEdges"`
 }
 
 func (v Viewport) At() time.Time {
@@ -31,7 +30,7 @@ func (v Viewport) At() time.Time {
 }
 
 func (v Viewport) DistanceTo(other Ratable) float64 {
-	center := coordinates.AzimuthalCoordinates{
+	center := AzimuthalCoordinates{
 		Elevation: v.ViewportEdges.BottomLeft.Elevation + util.Delta(v.ViewportEdges.TopLeft.Elevation, v.ViewportEdges.BottomLeft.Elevation)/2,
 		Azimuth:   v.ViewportEdges.BottomLeft.Azimuth + util.Delta(v.ViewportEdges.BottomRight.Azimuth, v.ViewportEdges.BottomLeft.Azimuth)/2,
 	}
@@ -49,7 +48,7 @@ func (v Viewport) Quality() float64 {
 	return sum
 }
 
-func (v Viewport) Position() coordinates.AzimuthalCoordinates {
+func (v Viewport) Position() AzimuthalCoordinates {
 	return v.AzimuthalPosition
 }
 

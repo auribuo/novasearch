@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/auribuo/novasearch/sql"
-	"github.com/auribuo/novasearch/types/coordinates"
+	"github.com/auribuo/novasearch/types"
 	"github.com/auribuo/novasearch/util"
 	"github.com/spf13/cobra"
 )
@@ -86,8 +86,8 @@ func parseLine(line string, header string) Response {
 	cobra.CheckErr(err)
 
 	return Response{
-		RightAscension: coordinates.RightAscensionToDegrees(raHours, raMinutes, raSeconds),
-		Declination:    coordinates.DeclinationToDegrees(decDegrees, decMinutes, decSeconds),
+		RightAscension: types.RightAscensionToDegrees(raHours, raMinutes, raSeconds),
+		Declination:    types.DeclinationToDegrees(decDegrees, decMinutes, decSeconds),
 		UgcNumber:      ugcNumber,
 		SemiMajorAxis:  semiMajorAxis,
 		SemiMinorAxis:  semiMinorAxis,

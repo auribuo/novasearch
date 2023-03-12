@@ -1,8 +1,9 @@
-package coordinates
+package types
 
 import (
-	"github.com/auribuo/novasearch/util"
 	"math"
+
+	"github.com/auribuo/novasearch/util"
 )
 
 type AzimuthalCoordinates struct {

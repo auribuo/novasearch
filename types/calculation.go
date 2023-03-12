@@ -5,6 +5,6 @@ type CalculationData struct {
 	CalculateViewports bool    `json:"calculateViewports"`
 	GridSize           float64 `json:"gridSize"`
 	SearchRadius       float64 `json:"searchRadius"`
-	MaxSearchTime      float64 `json:"maxSearchTime"`
+	MaxSearchTime      int     `json:"maxSearchTime"`
 	StartPointCount    int     `json:"startPointCount"`
 }

@@ -1,16 +1,15 @@
-package situational
+package filter
 
 import (
 	"fmt"
 
 	"github.com/auribuo/novasearch/types"
-	"github.com/auribuo/novasearch/types/coordinates"
 )
 
-func Filter(galaxies []types.Galaxy, hemisphere types.Hemisphere, minHeight float64, maxMajorAxis float64, maxMinorAxis float64) ([]types.Galaxy, error) {
+func Situational(galaxies []types.Galaxy, hemisphere types.Hemisphere, minHeight float64, maxMajorAxis float64, maxMinorAxis float64) ([]types.Galaxy, error) {
 	filtered := make([]types.Galaxy, 0)
 	for _, galaxy := range galaxies {
-		if (galaxy.AzimuthalCoordinates == coordinates.AzimuthalCoordinates{}) {
+		if (galaxy.AzimuthalCoordinates == types.AzimuthalCoordinates{}) {
 			return nil, fmt.Errorf("galaxy UGC%d has no azimuthal coordinates", galaxy.Id)
 		}
 		if galaxy.Position().Elevation < minHeight {

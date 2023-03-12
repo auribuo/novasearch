@@ -5,7 +5,7 @@ import (
 	"math"
 	"time"
 
-	"github.com/auribuo/novasearch/types/coordinates"
+	"github.com/auribuo/novasearch/sql"
 )
 
 const (
@@ -19,36 +19,32 @@ const readoutTime = 3
 type extendedGalaxy Galaxy
 
 type Galaxy struct {
-	Morphology            string                            `json:"morphology"`
-	Id                    int                               `json:"id"`
-	PreferredName         string                            `json:"preferredName"`
-	Magnitude             float64                           `json:"magnitude"`
-	EquatorialCoordinates coordinates.EquatorialCoordinates `json:"equatorialCoordinates"`
-	AzimuthalCoordinates  coordinates.AzimuthalCoordinates  `json:"azimuthalCoordinates"`
-	SemiMajorAxis         float64                           `json:"semiMajorAxis"`
-	SemiMinorAxis         float64                           `json:"semiMinorAxis"`
-	Redshift              float64                           `json:"redshift"`
+	Morphology            string                `json:"morphology"`
+	Id                    int                   `json:"id"`
+	PreferredName         string                `json:"preferredName"`
+	Magnitude             float64               `json:"magnitude"`
+	EquatorialCoordinates EquatorialCoordinates `json:"equatorialCoordinates"`
+	AzimuthalCoordinates  AzimuthalCoordinates  `json:"azimuthalCoordinates"`
+	SemiMajorAxis         float64               `json:"semiMajorAxis"`
+	SemiMinorAxis         float64               `json:"semiMinorAxis"`
+	Redshift              float64               `json:"redshift"`
 	visited               bool
 	timestamp             time.Time
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Mark(t time.Time) {
 	g.timestamp = t
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) At() time.Time {
 	return g.timestamp
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) String() string {
 	jsonString, _ := json.Marshal(g)
 	return string(jsonString)
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) MarshalJSON() ([]byte, error) {
 	return json.Marshal(&struct {
 		*extendedGalaxy
@@ -63,7 +59,6 @@ func (g *Galaxy) MarshalJSON() ([]byte, error) {
 	})
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) UnmarshalJSON(data []byte) error {
 	type Alias Galaxy
 	aux := &struct {
@@ -77,22 +72,18 @@ func (g *Galaxy) UnmarshalJSON(data []byte) error {
 	return nil
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Visit() {
 	g.visited = true
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Reset() {
 	g.visited = false
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Distance() float64 {
 	return g.Redshift * 299792.458 / 70
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Quality() float64 {
 	if g.visited {
 		return 0
@@ -121,7 +112,7 @@ func (g *Galaxy) Quality() float64 {
 
 	quality := typeWeight * math.Pow(10, (g.Magnitude-MagnitudeUgc2)/-2.5)
 
-	if (g.AzimuthalCoordinates != coordinates.AzimuthalCoordinates{}) {
+	if (g.AzimuthalCoordinates != AzimuthalCoordinates{}) {
 		height := g.AzimuthalCoordinates.Elevation
 		heightWeight := math.Pow((height-30)/60, 1/3.0)
 		quality *= heightWeight
@@ -134,7 +125,6 @@ func (g *Galaxy) Quality() float64 {
 	return quality
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) calculateExposure(referenceTime float64) float64 {
 	var distance float64
 	if g.Distance() > 0 {
@@ -145,17 +135,14 @@ func (g *Galaxy) calculateExposure(referenceTime float64) float64 {
 	return referenceTime * math.Pow(distance/DistanceUgc2, 2)
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) slewFunction(distance float64) float64 {
 	return 1/2.0*distance + 6
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) DistanceTo(other Ratable) float64 {
 	return g.AzimuthalCoordinates.DistanceTo(other.Position())
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) WaitTime(distance float64) int {
 	slewTime := g.slewFunction(distance)
 	balanceTime := slewTime / 1.5
@@ -165,12 +152,79 @@ func (g *Galaxy) WaitTime(distance float64) int {
 	return int(math.Ceil(slewTime + balanceTime + exposureTime + readoutTime + exposureCheck + readoutTime))
 }
 
-//goland:noinspection GoMixedReceiverTypes
-func (g *Galaxy) Position() coordinates.AzimuthalCoordinates {
+func (g *Galaxy) Position() AzimuthalCoordinates {
 	return g.AzimuthalCoordinates
 }
 
-//goland:noinspection GoMixedReceiverTypes
 func (g *Galaxy) Exposure() float64 {
 	return g.calculateExposure(BaseTimeUgc2)
+}
+
+func CalculateViewports(source []Galaxy, fov Fov, location Location, dateTime time.Time, gridApprox float64) []Viewport {
+	var viewports = make(map[Tuple[float64, float64]]Viewport)
+	xStep := fov.Width * gridApprox
+	yStep := fov.Height * gridApprox
+
+	for _, galaxy := range source {
+		xApprox := nearestDegree(galaxy.EquatorialCoordinates.RightAscension, xStep)
+		yApprox := nearestDegree(galaxy.EquatorialCoordinates.Declination, yStep)
+
+		xyTuple := NewTuple(xApprox, yApprox)
+
+		if viewport, ok := viewports[xyTuple]; ok {
+			viewport.Galaxies = append(viewport.Galaxies, galaxy)
+			viewports[xyTuple] = viewport
+		} else {
+			viewport = Viewport{
+				EquatorialPosition: EquatorialCoordinates{
+					RightAscension: xApprox,
+					Declination:    yApprox,
+				},
+				Galaxies: []Galaxy{galaxy},
+			}
+
+			if location != (Location{}) && dateTime != (time.Time{}) {
+				topLeft := EquatorialCoordinates{
+					RightAscension: viewport.EquatorialPosition.RightAscension - fov.Width,
+					Declination:    viewport.EquatorialPosition.Declination + fov.Height,
+				}
+				topRight := EquatorialCoordinates{
+					RightAscension: viewport.EquatorialPosition.RightAscension + fov.Width,
+					Declination:    viewport.EquatorialPosition.Declination + fov.Height,
+				}
+				bottomLeft := EquatorialCoordinates{
+					RightAscension: viewport.EquatorialPosition.RightAscension - fov.Width,
+					Declination:    viewport.EquatorialPosition.Declination - fov.Height,
+				}
+				bottomRight := EquatorialCoordinates{
+					RightAscension: viewport.EquatorialPosition.RightAscension + fov.Width,
+					Declination:    viewport.EquatorialPosition.Declination - fov.Height,
+				}
+				viewport.ViewportEdges = ViewportEdges{
+					TopLeft:     topLeft.ToAzimuthalCoordinates(dateTime, location),
+					TopRight:    topRight.ToAzimuthalCoordinates(dateTime, location),
+					BottomLeft:  bottomLeft.ToAzimuthalCoordinates(dateTime, location),
+					BottomRight: bottomRight.ToAzimuthalCoordinates(dateTime, location),
+				}
+				viewport.AzimuthalPosition = viewport.EquatorialPosition.ToAzimuthalCoordinates(dateTime, location)
+			}
+
+			viewports[xyTuple] = viewport
+		}
+	}
+	return sql.Values(viewports)
+}
+
+func nearestDegree(degree float64, step float64) float64 {
+	var nearestDeg float64
+
+	n := degree / step
+
+	if math.Abs(degree-n*step) < math.Abs(degree-(n+1)*step) {
+		nearestDeg = n * step
+	} else {
+		nearestDeg = (n + 1) * step
+	}
+
+	return nearestDeg
 }

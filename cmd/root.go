@@ -29,7 +29,7 @@ var rootCmd = &cobra.Command{
 			log.Default.Warn("Development mode enabled")
 		}
 		initStart := time.Now()
-		cobra.CheckErr(data.Init(data.DefaultFetcher))
+		cobra.CheckErr(data.NewDefault().Init())
 		log.Default.Infof("repo initialized in %dms. starting api...", time.Since(initStart).Milliseconds())
 		api.Start(appConfig.Host, appConfig.Port, appConfig.DevMode)
 	},

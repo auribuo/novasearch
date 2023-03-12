@@ -1,0 +1,243 @@
+basePath: /api
+definitions:
+  api.ErrorResponse:
+    properties:
+      message:
+        type: string
+    type: object
+  api.GalaxyFilterRequest:
+    properties:
+      fov:
+        $ref: '#/definitions/types.Fov'
+      hemisphere:
+        allOf:
+        - $ref: '#/definitions/types.Hemisphere'
+        enum:
+        - W
+        - E
+      includeViewports:
+        default: false
+        type: boolean
+      location:
+        $ref: '#/definitions/types.Location'
+      maxSemiMajorAxis:
+        default: 10
+        type: number
+      maxSemiMinorAxis:
+        default: 10
+        type: number
+      minHeight:
+        default: 30
+        type: number
+      startTime:
+        type: string
+    required:
+    - fov
+    - hemisphere
+    - location
+    - startTime
+    type: object
+  api.GalaxyResponse:
+    properties:
+      galaxies:
+        items:
+          $ref: '#/definitions/types.Galaxy'
+        type: array
+      total:
+        type: integer
+      viewports:
+        items:
+          $ref: '#/definitions/types.Viewport'
+        type: array
+    type: object
+  types.AzimuthalCoordinates:
+    properties:
+      azimuth:
+        type: number
+      elevation:
+        type: number
+    type: object
+  types.EquatorialCoordinates:
+    properties:
+      declination:
+        type: number
+      rightAscension:
+        type: number
+    type: object
+  types.Fov:
+    properties:
+      height:
+        type: number
+      width:
+        type: number
+    type: object
+  types.Galaxy:
+    properties:
+      azimuthalCoordinates:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+      equatorialCoordinates:
+        $ref: '#/definitions/types.EquatorialCoordinates'
+      id:
+        type: integer
+      magnitude:
+        type: number
+      morphology:
+        type: string
+      preferredName:
+        type: string
+      redshift:
+        type: number
+      semiMajorAxis:
+        type: number
+      semiMinorAxis:
+        type: number
+    type: object
+  types.Hemisphere:
+    enum:
+    - E
+    - W
+    type: string
+    x-enum-varnames:
+    - East
+    - West
+  types.Location:
+    properties:
+      latitude:
+        type: number
+      longitude:
+        type: number
+    required:
+    - latitude
+    - longitude
+    type: object
+  types.Viewport:
+    properties:
+      azimuthalPosition:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+      equatorialPosition:
+        $ref: '#/definitions/types.EquatorialCoordinates'
+      galaxies:
+        items:
+          $ref: '#/definitions/types.Galaxy'
+        type: array
+      viewportEdges:
+        $ref: '#/definitions/types.ViewportEdges'
+    type: object
+  types.ViewportEdges:
+    properties:
+      bottomLeft:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+      bottomRight:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+      topLeft:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+      topRight:
+        $ref: '#/definitions/types.AzimuthalCoordinates'
+    type: object
+host: localhost:8080
+info:
+  contact:
+    name: auribuo
+    url: https://github.com/auribuo/novasearch/issues
+  description: Api specification for Novasearch API
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+  title: Novasearch API
+  version: "1.0"
+paths:
+  /galaxies:
+    get:
+      consumes:
+      - application/json
+      description: Get all galaxies that were fetched from the database.
+      operationId: galaxies
+      parameters:
+      - description: Limit the number of galaxies returned.
+        in: query
+        name: limit
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GalaxyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get all galaxies.
+      tags:
+      - galaxies
+    post:
+      consumes:
+      - application/json
+      description: Filter galaxies by a set of parameters. The filter used is only
+        the situational. No algorithm is used.
+      operationId: filter-galaxies
+      parameters:
+      - description: Limit the number of galaxies returned.
+        in: query
+        name: limit
+        type: integer
+      - description: Galaxy filter request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.GalaxyFilterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GalaxyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Filter galaxies.
+      tags:
+      - galaxies
+  /galaxies/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get a galaxy by its ID.
+      operationId: galaxy
+      parameters:
+      - description: Galaxy ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.GalaxyResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Get a galaxy.
+      tags:
+      - galaxies
+swagger: "2.0"

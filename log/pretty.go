@@ -83,8 +83,8 @@ func (l loggerImpl) Warnf(format string, args ...interface{}) {
 	l.logf(WarnLevel, format, args...)
 }
 
-func (l loggerImpl) Error(args ...interface{}) {
-	l.log(ErrorLevel, args...)
+func (l loggerImpl) Error(err error) {
+	l.log(ErrorLevel, err.Error())
 }
 
 func (l loggerImpl) Errorf(format string, args ...interface{}) {

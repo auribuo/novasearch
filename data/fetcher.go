@@ -5,7 +5,6 @@ import (
 	"github.com/auribuo/novasearch/data/ugc"
 	"github.com/auribuo/novasearch/sql"
 	"github.com/auribuo/novasearch/types"
-	"github.com/auribuo/novasearch/types/coordinates"
 )
 
 type Fetcher interface {
@@ -46,11 +45,11 @@ func (f defaultDataFetcher) Fetch() ([]types.Galaxy, error) {
 			Id:            ugcResponse.UgcNumber,
 			PreferredName: nedResponse.PreferredName,
 			Magnitude:     magnitude,
-			EquatorialCoordinates: coordinates.EquatorialCoordinates{
+			EquatorialCoordinates: types.EquatorialCoordinates{
 				RightAscension: ugcResponse.RightAscension,
 				Declination:    ugcResponse.Declination,
 			},
-			AzimuthalCoordinates: coordinates.AzimuthalCoordinates{},
+			AzimuthalCoordinates: types.AzimuthalCoordinates{},
 			SemiMajorAxis:        ugcResponse.SemiMajorAxis,
 			SemiMinorAxis:        ugcResponse.SemiMinorAxis,
 			Redshift:             nedResponse.Redshift,

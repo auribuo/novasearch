@@ -25,7 +25,7 @@ func SetLogLevel(level LogLevel) {
 	minLevel = level
 }
 
-func dontLog(level LogLevel, arg ...interface{}) bool {
+func dontLog(level LogLevel) bool {
 	return level < minLevel
 }
 
@@ -52,7 +52,7 @@ type Logger interface {
 	Infof(format string, args ...interface{})
 	Warn(args ...interface{})
 	Warnf(format string, args ...interface{})
-	Error(args ...interface{})
+	Error(err error)
 	Errorf(format string, args ...interface{})
 	log(level LogLevel, arg ...interface{})
 	logf(level LogLevel, format string, arg ...interface{})
