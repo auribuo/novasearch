@@ -2,7 +2,7 @@
 
 A tool to calculate the optimal search path in the sky to have the best chance of finding a supernova.
 
-<img src="./logo.jpeg" style="border-radius: 15px" width="864" alt="novasearch_logo"/>
+<img src="./logo.svg" style="border-radius: 15px" width="864" alt="novasearch_logo"/>
 
 ## Table of contents
 
