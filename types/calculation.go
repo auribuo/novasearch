@@ -2,9 +2,8 @@ package types
 
 type CalculationData struct {
 	BaseData
-	CalculateViewports bool    `json:"calculateViewports"`
-	GridSize           float64 `json:"gridSize"`
-	SearchRadius       float64 `json:"searchRadius"`
-	MaxSearchTime      int     `json:"maxSearchTime"`
-	StartPointCount    int     `json:"startPointCount"`
+	GridSize        float64 `json:"gridSize" validate:"required"`
+	SearchRadius    float64 `json:"searchRadius" validate:"required"`
+	MaxSearchTime   int     `json:"maxSearchTime" validate:"required"`
+	StartPointCount int     `json:"startPointCount" validate:"required"`
 }
