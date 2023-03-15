@@ -18,6 +18,6 @@ ENV PATH="$PATH:/root/go/bin:/usr/local/go/bin"
 RUN go build
 RUN go install
 
-EXPOSE 8080
+EXPOSE 80
 
-ENTRYPOINT ["novasearch", "-p", "8080", "-H", "0.0.0.0"]
+ENTRYPOINT ["novasearch", "-p", "80", "-H", "0.0.0.0"]
