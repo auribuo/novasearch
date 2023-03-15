@@ -20,4 +20,4 @@ RUN go install
 
 EXPOSE 8080
 
-ENTRYPOINT ["novasearch"]
+ENTRYPOINT ["novasearch", "-p", "8080", "-H", "0.0.0.0"]

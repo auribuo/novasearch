@@ -13,11 +13,15 @@ type EquatorialCoordinates struct {
 }
 
 func RightAscensionToDegrees(hours float64, minutes float64, seconds float64) float64 {
-	return hours + minutes/60 + seconds/3600
+	return (hours*3600 + minutes*60 + seconds) * 360 / 86400
 }
 
 func DeclinationToDegrees(degrees float64, minutes float64, seconds float64) float64 {
-	return (degrees*3600 + minutes*60 + seconds) * 360 / 86400
+	if degrees < 0 {
+		return degrees - (minutes/60 + seconds/3600)
+	}
+
+	return degrees + minutes/60 + seconds/3600
 }
 
 func (c *EquatorialCoordinates) ToAzimuthalCoordinates(dateTime time.Time, location Location) AzimuthalCoordinates {
@@ -26,10 +30,13 @@ func (c *EquatorialCoordinates) ToAzimuthalCoordinates(dateTime time.Time, locat
 	latitude := location.Latitude
 	rightAscension := math.Mod(c.RightAscension+360.0, 360.0)
 	declination := math.Mod(c.Declination+360.0, 360.0)
-	julianDate := julianday.Date(dateTime)
+	julianDate := julianday.Date(dateTime) + 1
 	t := (julianDate - 2451545.0) / 36525.0
 	gmst0 := 100.46061837 + 36000.770053608*t + 0.000387933*t*t - (t * t * t / 38710000)
-	timeOfDayDeg := (dateTime.Hour() + 24) % 24 / 24.0 * 360.0
+	hour := dateTime.Hour()
+	absHours := math.Mod(float64((hour)+24.0), 24.0)
+	hourInDayFraction := absHours / 24.0
+	timeOfDayDeg := hourInDayFraction * 360.0
 	timeOfDayRect := float64(timeOfDayDeg) * 1.00273790935
 	gmst := math.Mod(gmst0+timeOfDayRect, 360)
 	lmst := math.Mod(gmst+longitude, 360)
