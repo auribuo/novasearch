@@ -125,7 +125,7 @@ The code can be found on [GitHub](https://github.com/auribuo/galaxylist).
 
 ### Webapp
 
-Coming soon.
+[Github repo](https://github.com/auribuo/novasearch-web)
 
 ## License
 
